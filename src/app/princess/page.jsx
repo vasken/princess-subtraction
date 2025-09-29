@@ -64,6 +64,15 @@ export default function Page() {
 	const intervalRef = useRef(null)
 
 	useEffect(() => {
+		const onKey = (e) => {
+			if (e.key === 'Enter') checkAnswer()
+			if (e.key === 'Escape') drawCard(true)
+		}
+		window.addEventListener('keydown', onKey)
+		return () => window.removeEventListener('keydown', onKey)
+	}, [answer, problem])
+
+	useEffect(() => {
 		if (!timerOn) return
 		intervalRef.current = setInterval(() => {
 			setSeconds((s) => (s > 0 ? s - 1 : 0))
