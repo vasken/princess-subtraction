@@ -79,6 +79,8 @@ export default function MathHangmanPage() {
 		() => princessLevel >= TOWER_LEVELS - 1,
 		[princessLevel],
 	)
+	// ✨ round celebration overlay
+	const [roundSparkle, setRoundSparkle] = useState(false)
 
 	const intervalRef = useRef(null)
 	const inputRef = useRef(null)
@@ -113,8 +115,6 @@ export default function MathHangmanPage() {
 		setRoundIndex(nextRound)
 		setProblem(generateProblem())
 		setAnswer('')
-		setWrong(0)
-		setLives(6)
 		setSolved(0)
 		const t = timeForRound(nextRound)
 		setTimeLeft(t)
@@ -134,6 +134,11 @@ export default function MathHangmanPage() {
 			setMessage('👑 The princess reached the top! You win!')
 			return
 		}
+
+		// ✨ flash sparkle
+		setRoundSparkle(true)
+		setTimeout(() => setRoundSparkle(false), 900)
+
 		setMessage('🎉 Round cleared! The princess climbs higher!')
 		startNextRound()
 	}
@@ -225,6 +230,108 @@ export default function MathHangmanPage() {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-amber-200 via-orange-200 to-rose-200 text-slate-900 p-4 md:p-8">
+			{/* ✨ round-clear sparkle overlay */}
+			{roundSparkle ? (
+				<div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
+					<div className="text-8xl animate-bounce">✨</div>
+					<div className="absolute top-1/4 left-1/4 text-6xl animate-ping">
+						⭐
+					</div>
+					<div
+						className="absolute top-1/3 right-1/4 text-6xl animate-ping"
+						style={{ animationDelay: '150ms' }}
+					>
+						🌟
+					</div>
+					<div
+						className="absolute bottom-1/3 left-1/3 text-6xl animate-ping"
+						style={{ animationDelay: '300ms' }}
+					>
+						💫
+					</div>
+				</div>
+			) : null}
+
+			{state === 'victory' ? (
+				<div className="fixed inset-0 z-50 bg-gradient-to-br from-yellow-300 via-pink-300 to-purple-400 flex items-center justify-center p-4">
+					{/* Floating celebration emojis */}
+					<div className="absolute top-10 left-10 text-8xl animate-bounce">
+						🎉
+					</div>
+					<div
+						className="absolute top-20 right-20 text-8xl animate-bounce"
+						style={{ animationDelay: '0.2s' }}
+					>
+						🎊
+					</div>
+					<div
+						className="absolute bottom-20 left-20 text-8xl animate-bounce"
+						style={{ animationDelay: '0.4s' }}
+					>
+						🏆
+					</div>
+					<div
+						className="absolute bottom-10 right-10 text-8xl animate-bounce"
+						style={{ animationDelay: '0.6s' }}
+					>
+						👑
+					</div>
+					<div className="absolute top-1/3 left-1/4 text-7xl animate-ping">
+						⭐
+					</div>
+					<div
+						className="absolute top-1/2 right-1/4 text-7xl animate-ping"
+						style={{ animationDelay: '0.3s' }}
+					>
+						✨
+					</div>
+					<div
+						className="absolute bottom-1/3 left-1/3 text-7xl animate-ping"
+						style={{ animationDelay: '0.6s' }}
+					>
+						💫
+					</div>
+					<div
+						className="absolute top-2/3 right-1/3 text-7xl animate-ping"
+						style={{ animationDelay: '0.9s' }}
+					>
+						🌟
+					</div>
+
+					{/* Main victory card */}
+					<div className="relative z-10 bg-white rounded-3xl border-8 border-yellow-400 shadow-2xl p-8 md:p-12 max-w-3xl w-full text-center space-y-6 ">
+						<div className="text-9xl animate-pulse">🧝‍♀️👑</div>
+						<h1 className="text-5xl md:text-7xl font-black text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 bg-clip-text leading-tight">
+							YOU DID IT!
+						</h1>
+						<div className="text-3xl md:text-4xl font-black text-purple-700">
+							The Princess is FREE! 🎉
+						</div>
+						<div className="bg-gradient-to-r from-yellow-200 to-amber-200 rounded-2xl p-6 border-4 border-yellow-400">
+							<div className="text-2xl md:text-3xl font-bold text-slate-800 space-y-2">
+								<div>🏰 You climbed all {TOWER_LEVELS} levels!</div>
+								<div>
+									📚 You solved {TOWER_LEVELS * QUESTIONS_PER_ROUND} problems!
+								</div>
+								<div>⚡ You completed {roundIndex} rounds!</div>
+							</div>
+						</div>
+						<div className="text-4xl md:text-5xl font-black text-green-600 animate-pulse">
+							YOU'RE A MATH HERO! 🦸🏻‍♀️
+						</div>
+						<button
+							onClick={hardReset}
+							className="w-full px-8 py-6 rounded-2xl bg-gradient-to-r from-blue-400 to-cyan-500 hover:from-blue-500 hover:to-cyan-600 text-white border-8 border-blue-700 font-black text-3xl md:text-4xl shadow-xl hover:scale-105 transition-all"
+						>
+							🎮 PLAY AGAIN!
+						</button>
+						<div className="text-xl font-bold text-slate-600">
+							Press Enter to start a new adventure!
+						</div>
+					</div>
+				</div>
+			) : null}
+
 			<div className="mx-auto max-w-5xl space-y-6">
 				<header className="flex items-center justify-between">
 					<Link
@@ -315,6 +422,13 @@ export default function MathHangmanPage() {
 						<div className="text-center font-bold">
 							Round {roundIndex} • Q {solved}/{QUESTIONS_PER_ROUND}
 						</div>
+						{/* tiny progress bar */}
+						<div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+							<div
+								className="h-full bg-emerald-500 transition-[width] duration-300"
+								style={{ width: `${(solved / QUESTIONS_PER_ROUND) * 100}%` }}
+							/>
+						</div>
 
 						<div className="rounded-2xl border-8 border-purple-400 bg-gradient-to-br from-purple-100 to-pink-100 p-6 flex items-center justify-center">
 							<div className="text-7xl md:text-8xl font-black font-mono text-purple-800 flex items-center gap-4">
@@ -342,9 +456,11 @@ export default function MathHangmanPage() {
 									onKeyDown={(e) => {
 										if (e.key === 'Enter') {
 											e.preventDefault()
+											e.stopPropagation()
 											checkAnswer()
 										} else if (e.key === 'Escape') {
 											e.preventDefault()
+											e.stopPropagation()
 											giveUp()
 										}
 									}}
