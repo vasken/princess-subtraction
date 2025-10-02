@@ -52,7 +52,7 @@ const GALLOWS = [
 // tower & timing
 const TOWER_LEVELS = 6 // rounds to win
 const QUESTIONS_PER_ROUND = 7 // <-- new
-const BASE_TIME = 30
+const BASE_TIME = 60
 const STEP_TIME = 5
 const MIN_TIME = 5
 const timeForRound = (roundIndex) =>
