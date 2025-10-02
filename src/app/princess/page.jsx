@@ -331,12 +331,6 @@ export default function Page() {
 									>
 										✅ CHECK!
 									</button>
-									<button
-										onClick={() => drawCard(true)}
-										className="w-full sm:w-auto px-6 py-6 rounded-2xl bg-gradient-to-r from-orange-300 to-yellow-400 hover:from-orange-400 hover:to-yellow-500 font-black text-lg md:text-xl border-4 border-orange-500 shadow-lg transition-all hover:scale-105"
-									>
-										🎴 New Card
-									</button>
 									<div
 										className={`px-6 py-4 rounded-2xl font-black text-2xl md:text-3xl border-4 shadow-lg ${
 											seconds <= 10 && timerOn
