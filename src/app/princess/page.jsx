@@ -211,9 +211,6 @@ export default function Page() {
 							👑 RESCUE THE PRINCESS! 👸
 						</span>
 					</h1>
-					<div className="text-2xl md:text-3xl font-bold text-white bg-purple-500 px-6 py-3 rounded-full shadow-xl border-4 border-white">
-						✏️ Subtraction Adventure! ✨
-					</div>
 				</header>
 
 				<div className="grid lg:grid-cols-2 gap-6 md:gap-8">
