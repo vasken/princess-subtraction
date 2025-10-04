@@ -250,12 +250,6 @@ export default function Page() {
 
 						<div className="mt-6 flex flex-col sm:flex-row items-center gap-4">
 							<button
-								onClick={() => move(1)}
-								className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-black text-xl border-4 border-blue-600 shadow-xl transition-all hover:scale-110 hover:shadow-2xl"
-							>
-								➡️ Move +1
-							</button>
-							<button
 								onClick={() => resetGame()}
 								className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white font-black text-xl border-4 border-rose-600 shadow-xl transition-all hover:scale-110 hover:shadow-2xl"
 							>
