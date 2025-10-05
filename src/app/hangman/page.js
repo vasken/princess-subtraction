@@ -81,6 +81,7 @@ export default function MathHangmanPage() {
 	)
 	// ✨ round celebration overlay
 	const [roundSparkle, setRoundSparkle] = useState(false)
+	const [shake, setShake] = useState(false)
 
 	const intervalRef = useRef(null)
 	const inputRef = useRef(null)
@@ -176,6 +177,8 @@ export default function MathHangmanPage() {
 			setWrong(w)
 			setLives(6 - w)
 			setAnswer('')
+			setShake(true)
+			setTimeout(() => setShake(false), 400)
 			if (w >= 6) {
 				loseRound('lost')
 			} else {
@@ -464,7 +467,12 @@ export default function MathHangmanPage() {
 											giveUp()
 										}
 									}}
-									className="px-6 py-5 rounded-2xl border-4 border-blue-400 text-4xl font-black text-center bg-blue-50 focus:outline-none focus:ring-8 focus:ring-orange-500"
+									className={[
+										'px-6 py-5 rounded-2xl border-4 text-4xl font-black text-center bg-blue-50 focus:outline-none focus:ring-8 focus:ring-orange-500 [will-change:transform]',
+										shake
+											? 'shake-no border-red-600 ring-4 ring-red-400'
+											: 'border-blue-400',
+									].join(' ')}
 									placeholder="???"
 									autoFocus
 								/>
@@ -514,6 +522,37 @@ export default function MathHangmanPage() {
 					</div>
 				</section>
 			</div>
+			<style jsx>{`
+				@keyframes shake-no {
+					0% {
+						transform: translateX(0);
+					}
+					15% {
+						transform: translateX(-8px);
+					}
+					30% {
+						transform: translateX(8px);
+					}
+					45% {
+						transform: translateX(-6px);
+					}
+					60% {
+						transform: translateX(6px);
+					}
+					75% {
+						transform: translateX(-4px);
+					}
+					90% {
+						transform: translateX(4px);
+					}
+					100% {
+						transform: translateX(0);
+					}
+				}
+				.shake-no {
+					animation: shake-no 0.4s ease-in-out;
+				}
+			`}</style>
 		</div>
 	)
 }
