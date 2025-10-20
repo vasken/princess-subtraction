@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 
-/** ---------- word list (swap with your own) ---------- */
+/** ---------- word list (Belle's library themed) ---------- */
 const WORDS = [
 	// easy CVC / blends
 	'cat',
@@ -16,32 +16,31 @@ const WORDS = [
 	'lamp',
 	'mask',
 	'nest',
-	// school words
+	// Belle-themed words
 	'book',
-	'pencil',
-	'paper',
-	'class',
+	'enchanted',
+	'shell',
 	'magic',
 	'castle',
-	'princess',
-	'tower',
-	'bridge',
-	'dragon',
-	// a bit harder
-	'whisper',
-	'teacher',
+	'rose',
+	'beast',
 	'library',
-	'puzzle',
-	'winter',
-	'summer',
-	'thunder',
-	'sparkle',
-	'potion',
-	'feather',
+	'scholar',
+	'story',
+	// a bit harder
+	'imagination',
+	'adventure',
+	'wisdom',
+	'dance',
+	'transform',
+	'love',
+	'brave',
+	'curious',
+	'wonder',
+	'forever',
 ]
 
 const pickRoundWords = (roundIdx, n) => {
-	// deterministic-ish shuffle per round for variety
 	const seed = roundIdx * 1337
 	const arr = [...WORDS]
 	for (let i = arr.length - 1; i > 0; i--) {
@@ -51,15 +50,32 @@ const pickRoundWords = (roundIdx, n) => {
 	return arr.slice(0, n)
 }
 
-/** ---------- library tower & timing ---------- */
-const FLOORS = 6 // victory after 6 cleared rounds
+/** ---------- Belle's library lessons ---------- */
+const FLOORS = 6
 const WORDS_PER_ROUND = 7
 const BASE_TIME = 60
 const STEP_TIME = 5
 const MIN_TIME = 5
 const timeForRound = (r) => Math.max(MIN_TIME, BASE_TIME - STEP_TIME * (r - 1))
 
-/** ---------- TTS helpers (Web Speech API) ---------- */
+/** ---------- Belle's encouragement ---------- */
+const ENCOURAGEMENTS = [
+	'"Wonderful! You\'re a natural reader!"',
+	'"Oh, that\'s splendid! Just like in my books!"',
+	'"Marvelous! Mrs. Potts would be so proud!"',
+	'"Excellent! You\'re learning so quickly!"',
+	'"Beautiful work! Keep going, dear!"',
+]
+
+const LEVEL_MESSAGES = [
+	"Let's begin your first lesson!",
+	'Wonderful progress, Chip! Belle believes in you!',
+	'The Beast is understanding more each day!',
+	"Look how far you've come already!",
+	"You're becoming quite the scholar!",
+	"You've mastered the library! Belle is beaming with pride!",
+]
+
 const speak = (text) => {
 	if (typeof window === 'undefined' || !text) return
 	const u = new SpeechSynthesisUtterance(text)
@@ -70,18 +86,15 @@ const speak = (text) => {
 	window.speechSynthesis.speak(u)
 }
 
-export default function SpellingLibraryPage() {
-	// round/timer
+export default function BelleSpellingGame() {
 	const [roundIndex, setRoundIndex] = useState(1)
 	const [timeLeft, setTimeLeft] = useState(() => timeForRound(1))
-	const [state, setState] = useState('playing') // 'playing' | 'timeout' | 'victory'
+	const [state, setState] = useState('playing')
 
-	// progress
-	const [floorLit, setFloorLit] = useState(0) // 0..FLOORS-1 (lanterns lit)
+	const [floorLit, setFloorLit] = useState(0)
 	const atTop = useMemo(() => floorLit >= FLOORS - 1, [floorLit])
 
-	// words
-	const [solved, setSolved] = useState(0) // 0..7
+	const [solved, setSolved] = useState(0)
 	const roundWords = useMemo(
 		() => pickRoundWords(roundIndex, WORDS_PER_ROUND),
 		[roundIndex],
@@ -89,19 +102,16 @@ export default function SpellingLibraryPage() {
 	const [wordIdx, setWordIdx] = useState(0)
 	const currentWord = roundWords[wordIdx] || ''
 
-	// UI
 	const [answer, setAnswer] = useState('')
 	const [message, setMessage] = useState('Listen to the word and type it!')
 	const [shake, setShake] = useState(false)
 	const [sparkle, setSparkle] = useState(false)
 
-	// refs
 	const intervalRef = useRef(null)
 	const inputRef = useRef(null)
 
 	const focusInput = () => inputRef.current?.focus()
 
-	/** timer (per round) */
 	useEffect(() => {
 		if (state !== 'playing') return
 		if (intervalRef.current) clearInterval(intervalRef.current)
@@ -111,7 +121,7 @@ export default function SpellingLibraryPage() {
 					clearInterval(intervalRef.current)
 					setState('timeout')
 					setMessage(
-						`⏱️ Time’s up! You spelled ${solved}/${WORDS_PER_ROUND}. Back to the library entrance.`,
+						`Time's up for this lesson! You spelled ${solved}/${WORDS_PER_ROUND} words. Back to the library entrance.`,
 					)
 					setFloorLit(0)
 					return 0
@@ -122,7 +132,6 @@ export default function SpellingLibraryPage() {
 		return () => intervalRef.current && clearInterval(intervalRef.current)
 	}, [state, solved])
 
-	/** auto-speak on word + focus */
 	useEffect(() => {
 		if (state !== 'playing' || !currentWord) return
 		speak(`Spell: ${currentWord}`)
@@ -144,23 +153,21 @@ export default function SpellingLibraryPage() {
 		setWordIdx(0)
 		setTimeLeft(t)
 		setState('playing')
-		setMessage(`Round ${next}: ${WORDS_PER_ROUND} words in ${t}s!`)
+		setMessage(`Lesson ${next}: ${WORDS_PER_ROUND} words in ${t}s!`)
 		focusInput()
 	}
 
 	const roundSuccess = () => {
-		// light next lantern / climb a floor
 		const nextFloor = Math.min(FLOORS - 1, floorLit + 1)
 		setFloorLit(nextFloor)
 		if (intervalRef.current) clearInterval(intervalRef.current)
 
 		if (nextFloor >= FLOORS - 1) {
 			setState('victory')
-			setMessage('📚 All lanterns lit! The bookish princess cheers—You win!')
+			setMessage("Belle is so proud! You've become a true reader! 📚👑")
 			return
 		}
 
-		// sparkle
 		setSparkle(true)
 		setTimeout(() => setSparkle(false), 900)
 
@@ -178,8 +185,12 @@ export default function SpellingLibraryPage() {
 			const s = solved + 1
 			setSolved(s)
 			const left = WORDS_PER_ROUND - s
+			const encouragement =
+				ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
 			setMessage(
-				left > 0 ? `✅ Correct! ${left} to finish the floor.` : '✅ Correct!',
+				left > 0
+					? `✅ Correct! ${encouragement} ${left} more to go.`
+					: `✅ ${encouragement}`,
 			)
 			if (s >= WORDS_PER_ROUND) {
 				roundSuccess()
@@ -189,8 +200,7 @@ export default function SpellingLibraryPage() {
 		} else {
 			setShake(true)
 			setTimeout(() => setShake(false), 400)
-			setMessage('❌ Not quite. Try again—listen carefully!')
-			// keep the same word (spelling bee style)
+			setMessage(`Not quite, dear. Try again—Belle knows you can do it!`)
 		}
 	}
 
@@ -201,11 +211,10 @@ export default function SpellingLibraryPage() {
 		}
 		if (intervalRef.current) clearInterval(intervalRef.current)
 		setState('timeout')
-		setMessage('🏳️ You stopped. Press Enter for a new game.')
+		setMessage("Come back when you're ready for another lesson!")
 		setFloorLit(0)
 	}
 
-	// global keys
 	useEffect(() => {
 		const onKey = (e) => {
 			const tag = e.target?.tagName
@@ -231,154 +240,163 @@ export default function SpellingLibraryPage() {
 		setTimeLeft(timeForRound(1))
 		setFloorLit(0)
 		setState('playing')
-		setMessage(
-			`New game! Floor 1 — ${WORDS_PER_ROUND} words in ${timeForRound(1)}s.`,
-		)
+		setMessage(LEVEL_MESSAGES[0])
 		setAnswer('')
 		focusInput()
 		setTimeout(() => speak(`Spell: ${pickRoundWords(1, 1)[0]}`), 0)
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-amber-200 via-orange-200 to-rose-200 text-slate-900 p-4 md:p-8">
+		<div className="min-h-screen bg-gradient-to-b from-yellow-100 via-amber-100 to-orange-100 text-slate-900 p-4 md:p-8">
 			{/* sparkle on floor clear */}
 			{sparkle ? (
 				<div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
 					<div className="text-8xl animate-bounce">✨</div>
 					<div className="absolute top-1/4 left-1/4 text-6xl animate-ping">
-						⭐
+						📚
 					</div>
 					<div
 						className="absolute top-1/3 right-1/4 text-6xl animate-ping"
 						style={{ animationDelay: '150ms' }}
 					>
-						🌟
+						🌹
 					</div>
 					<div
 						className="absolute bottom-1/3 left-1/3 text-6xl animate-ping"
 						style={{ animationDelay: '300ms' }}
 					>
-						💫
+						💛
 					</div>
 				</div>
 			) : null}
 
 			{/* victory overlay */}
 			{state === 'victory' ? (
-				<div className="fixed inset-0 z-50 bg-gradient-to-br from-yellow-300 via-pink-300 to-purple-400 flex items-center justify-center p-4">
-					<div className="relative z-10 bg-white rounded-3xl border-8 border-yellow-400 shadow-2xl p-8 md:p-12 max-w-3xl w-full text-center space-y-6 ">
-						<div className="text-9xl animate-pulse">📚👑</div>
-						<h1 className="text-5xl md:text-7xl font-black text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 bg-clip-text leading-tight">
-							LIBRARY MASTER!
+				<div className="fixed inset-0 z-50 bg-gradient-to-br from-yellow-300 via-amber-200 to-rose-300 flex items-center justify-center p-4">
+					<div className="relative z-10 bg-white rounded-3xl border-8 border-yellow-500 shadow-2xl p-8 md:p-12 max-w-3xl w-full text-center space-y-6">
+						<div className="text-9xl animate-pulse">📚💛</div>
+						<h1 className="text-5xl md:text-7xl font-black text-transparent bg-gradient-to-r from-yellow-600 via-amber-500 to-rose-500 bg-clip-text leading-tight">
+							BELLE'S SCHOLAR!
 						</h1>
-						<div className="text-3xl md:text-4xl font-black text-purple-700">
-							All lanterns are lit! 🎉
+						<div className="text-3xl md:text-4xl font-black text-amber-900">
+							You've mastered the library! 📖✨
 						</div>
+						<p className="text-2xl font-bold text-slate-700">
+							Belle is beaming with pride! "Now we can read the most wonderful
+							stories together!"
+						</p>
 						<button
 							onClick={hardReset}
-							className="w-full px-8 py-6 rounded-2xl bg-gradient-to-r from-blue-400 to-cyan-500 hover:from-blue-500 hover:to-cyan-600 text-white border-8 border-blue-700 font-black text-3xl md:text-4xl shadow-xl hover:scale-105 transition-all"
+							className="w-full px-8 py-6 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white border-8 border-yellow-700 font-black text-3xl md:text-4xl shadow-xl hover:scale-105 transition-all"
 						>
-							🎮 PLAY AGAIN!
+							📚 LEARN AGAIN!
 						</button>
-						<div className="text-xl font-bold text-slate-600">
-							Press Enter to start again
-						</div>
 					</div>
 				</div>
 			) : null}
 
 			<div className="mx-auto max-w-5xl space-y-6">
-				<header className="flex items-center justify-between">
-					<Link
-						href="/"
-						className="px-4 py-2 rounded-xl bg-white/90 hover:bg-white border-2 border-slate-800 font-bold shadow"
-					>
-						← Back
-					</Link>
-					<div
-						className={`px-4 py-2 rounded-xl border-4 font-black text-2xl ${
-							state === 'playing'
-								? timeLeft <= 5
-									? 'bg-red-500 text-white border-red-700 animate-pulse'
-									: 'bg-yellow-300 border-yellow-500 text-yellow-900'
-								: 'bg-slate-200 border-slate-400 text-slate-700'
-						}`}
-						aria-live="polite"
-					>
-						⏱️ {timeLeft}s
-					</div>
+				<header className="text-center">
+					<h1 className="text-4xl md:text-5xl font-black text-amber-900 mb-2">
+						✨ Belle's Library Lesson ✨
+					</h1>
+					<p className="text-xl font-bold text-amber-800">
+						Help Chip learn to read with Belle as your guide!
+					</p>
 				</header>
 
+				<div
+					className={`px-4 py-2 rounded-xl border-4 font-black text-2xl text-center ${
+						state === 'playing'
+							? timeLeft <= 5
+								? 'bg-red-500 text-white border-red-700 animate-pulse'
+								: 'bg-yellow-300 border-yellow-600 text-yellow-900'
+							: 'bg-slate-200 border-slate-400 text-slate-700'
+					}`}
+					aria-live="polite"
+				>
+					⏱️ {timeLeft}s
+				</div>
+
 				<section className="grid lg:grid-cols-[1.05fr_0.95fr] gap-6">
-					{/* Left: Library Tower (lantern progress) */}
-					<div className="bg-white rounded-2xl border-8 border-purple-700 p-4 md:p-6">
-						<h2 className="text-2xl font-black text-purple-700 mb-3">
-							🏰 Library Tower
+					{/* Left: Library Shelves (progress) */}
+					<div className="bg-gradient-to-b from-amber-50 to-yellow-50 rounded-2xl border-8 border-amber-800 p-4 md:p-6 shadow-lg">
+						<h2 className="text-3xl font-black text-amber-900 mb-4">
+							📚 Belle's Library
 						</h2>
-						<div className="grid grid-rows-6 gap-2">
+						<div className="space-y-3">
 							{Array.from({ length: FLOORS }).map((_, idx) => {
-								const level = FLOORS - 1 - idx // render top -> bottom
+								const level = FLOORS - 1 - idx
 								const lit = level <= floorLit
 								const isTop = level === FLOORS - 1
 								return (
 									<div
 										key={level}
-										className={[
-											'relative h-12 rounded-xl border-4 flex items-center justify-between px-3',
+										className={`relative px-4 py-3 rounded-xl border-4 flex items-center justify-between font-bold text-lg transition-all ${
 											lit
-												? 'bg-gradient-to-r from-yellow-100 to-amber-200 border-yellow-500'
-												: 'bg-gradient-to-r from-indigo-100 to-purple-100 border-purple-300',
-										].join(' ')}
+												? 'bg-gradient-to-r from-yellow-200 to-amber-200 border-yellow-600 shadow-md'
+												: 'bg-gradient-to-r from-slate-100 to-slate-200 border-slate-400'
+										}`}
 									>
-										<span className="font-black text-slate-700">
-											Floor {level + 1}
+										<span className="text-amber-900">
+											{isTop
+												? "Belle's Special Collection"
+												: `Shelf ${level + 1}`}
 										</span>
 										<span className="text-2xl">
-											{isTop ? '👑' : '📚'} {lit ? '🕯️' : '💤'}
+											{isTop ? '👑' : '📖'} {lit ? '✨' : '🌙'}
 										</span>
 									</div>
 								)
 							})}
 						</div>
-						<div className="mt-3 text-center font-bold">
+						<div className="mt-4 text-center font-bold text-amber-900">
 							{atTop
-								? '🎉 All floors lit — game over!'
-								: `Progress: ${floorLit + 1}/${FLOORS}`}
+								? '🎉 Every shelf glows with magic!'
+								: `${floorLit + 1}/${FLOORS} shelves lit`}
 						</div>
 					</div>
 
-					{/* Right: Word & Controls */}
-					<div className="bg-white rounded-2xl border-8 border-yellow-400 p-6 md:p-8 flex flex-col gap-4">
-						<h1 className="text-3xl md:text-4xl font-black text-center">
-							🔊 Spelling Tower
+					{/* Right: Lesson Area */}
+					<div className="bg-gradient-to-b from-amber-50 to-yellow-50 rounded-2xl border-8 border-yellow-600 p-6 md:p-8 flex flex-col gap-4 shadow-lg">
+						<h1 className="text-3xl md:text-4xl font-black text-center text-amber-900">
+							🔊 Spelling Lesson
 						</h1>
 
-						<div className="text-center font-bold">
-							Floor {roundIndex} • Word {solved}/{WORDS_PER_ROUND}
+						<div className="text-center font-bold text-lg text-amber-800">
+							{
+								LEVEL_MESSAGES[
+									Math.min(roundIndex - 1, LEVEL_MESSAGES.length - 1)
+								]
+							}
 						</div>
 
-						{/* tiny progress bar */}
-						<div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+						<div className="text-center font-bold text-amber-900">
+							Lesson {roundIndex} • Word {solved}/{WORDS_PER_ROUND}
+						</div>
+
+						{/* progress bar */}
+						<div className="h-3 rounded-full bg-slate-200 overflow-hidden border-2 border-amber-800">
 							<div
-								className="h-full bg-emerald-500 transition-[width] duration-300"
+								className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 transition-[width] duration-300"
 								style={{ width: `${(solved / WORDS_PER_ROUND) * 100}%` }}
 							/>
 						</div>
 
 						{/* speaker card */}
-						<div className="rounded-2xl border-8 border-purple-400 bg-gradient-to-br from-purple-100 to-pink-100 p-6 flex items-center justify-center">
+						<div className="rounded-2xl border-8 border-yellow-500 bg-gradient-to-br from-yellow-100 to-amber-100 p-6 flex items-center justify-center">
 							<button
 								onClick={() => speak(`Spell: ${currentWord}`)}
-								className="px-6 py-4 rounded-2xl bg-gradient-to-r from-indigo-400 to-purple-500 text-white border-4 border-indigo-700 font-black text-2xl shadow hover:scale-105"
+								className="px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-white border-4 border-amber-700 font-black text-2xl shadow-lg hover:scale-105 transition-transform"
 							>
-								🔊 Hear Word
+								🔊 Hear the Word
 							</button>
 						</div>
 
 						{state === 'playing' ? (
 							<>
-								<label className="text-xl font-bold text-slate-700 text-center">
-									Type what you heard
+								<label className="text-lg font-bold text-amber-900 text-center">
+									Belle says: "Type what you hear, dear!"
 								</label>
 								<input
 									ref={inputRef}
@@ -403,70 +421,71 @@ export default function SpellingLibraryPage() {
 											giveUp()
 										}
 									}}
-									className={[
-										'px-6 py-5 rounded-2xl border-4 text-4xl font-black text-center bg-amber-50 focus:outline-none focus:ring-8 focus:ring-orange-500 [will-change:transform]',
+									className={`px-6 py-5 rounded-2xl border-4 text-4xl font-black text-center bg-white focus:outline-none focus:ring-8 [will-change:transform] transition-colors ${
 										shake
 											? 'shake-no border-red-600 ring-4 ring-red-400'
-											: 'border-blue-400',
-									].join(' ')}
-									placeholder="type it here…"
+											: 'border-yellow-500 focus:ring-amber-500'
+									}`}
+									placeholder="type here…"
 									autoFocus
 								/>
 
 								<div className="flex items-center gap-3">
 									<button
 										onClick={checkAnswer}
-										className="flex-1 px-6 py-5 rounded-2xl bg-gradient-to-r from-green-400 to-emerald-500 text-white border-4 border-green-700 font-black text-2xl shadow hover:scale-105"
+										className="flex-1 px-6 py-5 rounded-2xl bg-gradient-to-r from-green-400 to-emerald-500 text-white border-4 border-green-700 font-black text-2xl shadow hover:scale-105 transition-transform"
 									>
 										✅ Check
 									</button>
 									<button
 										onClick={() => speak(`Spell: ${currentWord}`)}
-										className="px-6 py-5 rounded-2xl bg-gradient-to-r from-indigo-400 to-blue-500 text-white border-4 border-indigo-700 font-black text-xl shadow hover:scale-105"
+										className="px-6 py-5 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-4 border-yellow-700 font-black text-xl shadow hover:scale-105 transition-transform"
 									>
 										🔁 Repeat
 									</button>
 									<button
 										onClick={giveUp}
-										className="px-6 py-5 rounded-2xl bg-gradient-to-r from-rose-400 to-red-500 text-white border-4 border-red-700 font-black text-xl shadow hover:scale-105"
+										className="px-6 py-5 rounded-2xl bg-gradient-to-r from-slate-400 to-slate-500 text-white border-4 border-slate-700 font-black text-xl shadow hover:scale-105 transition-transform"
 									>
-										🏳️ Give Up
+										🏳️ Quit
 									</button>
 								</div>
 							</>
 						) : (
 							<div className="space-y-3">
-								<div className="text-center text-2xl font-bold">{message}</div>
+								<div className="text-center text-2xl font-bold text-amber-900">
+									{message}
+								</div>
 								<button
 									onClick={hardReset}
-									className="w-full px-6 py-5 rounded-2xl bg-gradient-to-r from-blue-400 to-cyan-500 text-white border-4 border-blue-700 font-black text-2xl shadow hover:scale-105"
+									className="w-full px-6 py-5 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-4 border-yellow-700 font-black text-2xl shadow hover:scale-105 transition-transform"
 								>
 									{state === 'victory'
-										? '🎮 Play Again (Enter)'
-										: '🔄 New Game (Enter)'}
+										? '📚 Another Lesson (Enter)'
+										: '🔄 New Lesson (Enter)'}
 								</button>
 							</div>
 						)}
 
 						<div
-							className="mt-2 text-center text-lg font-bold"
+							className="mt-2 text-center text-sm font-bold text-amber-800"
 							aria-live="polite"
 						>
 							{state === 'playing'
-								? `Enter = Check • Esc = Give Up • This floor: ${timeForRound(
+								? `Enter = Check • Esc = Quit • Time: ${timeForRound(
 										roundIndex,
 								  )}s`
-								: 'Press Enter to start a new game'}
+								: 'Press Enter for a new lesson'}
 						</div>
 
-						<div className="bg-gradient-to-r from-yellow-200 to-amber-200 rounded-xl p-4 text-center border-4 border-yellow-400 min-h-[64px] flex items-center justify-center">
-							<div className="text-xl font-bold text-slate-800">{message}</div>
+						<div className="bg-gradient-to-r from-yellow-100 to-amber-100 rounded-xl p-4 text-center border-4 border-yellow-500 min-h-[80px] flex items-center justify-center shadow">
+							<div className="text-lg font-bold text-amber-900">{message}</div>
 						</div>
 					</div>
 				</section>
 			</div>
 
-			{/* local keyframes for the shake */}
+			{/* shake animation */}
 			<style jsx>{`
 				@keyframes shake-no {
 					0% {
