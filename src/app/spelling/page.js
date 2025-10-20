@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 
 /** ---------- word list (Belle's library themed) ---------- */
 const WORDS = [
@@ -19,7 +18,7 @@ const WORDS = [
 	// Belle-themed words
 	'book',
 	'enchanted',
-	'shell',
+	'spell',
 	'magic',
 	'castle',
 	'rose',
@@ -270,28 +269,27 @@ export default function BelleSpellingGame() {
 				</div>
 			) : null}
 
-			{/* victory overlay */}
+			{/* victory overlay with video */}
 			{state === 'victory' ? (
-				<div className="fixed inset-0 z-50 bg-gradient-to-br from-yellow-300 via-amber-200 to-rose-300 flex items-center justify-center p-4">
-					<div className="relative z-10 bg-white rounded-3xl border-8 border-yellow-500 shadow-2xl p-8 md:p-12 max-w-3xl w-full text-center space-y-6">
-						<div className="text-9xl animate-pulse">📚💛</div>
-						<h1 className="text-5xl md:text-7xl font-black text-transparent bg-gradient-to-r from-yellow-600 via-amber-500 to-rose-500 bg-clip-text leading-tight">
-							BELLE'S SCHOLAR!
-						</h1>
-						<div className="text-3xl md:text-4xl font-black text-amber-900">
-							You've mastered the library! 📖✨
-						</div>
-						<p className="text-2xl font-bold text-slate-700">
-							Belle is beaming with pride! "Now we can read the most wonderful
-							stories together!"
-						</p>
-						<button
-							onClick={hardReset}
-							className="w-full px-8 py-6 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white border-8 border-yellow-700 font-black text-3xl md:text-4xl shadow-xl hover:scale-105 transition-all"
-						>
-							📚 LEARN AGAIN!
-						</button>
-					</div>
+				<div className="fixed inset-0 z-50 bg-black flex items-center justify-center p-4">
+					<video
+						autoPlay
+						controls
+						className="w-full h-full max-w-4xl max-h-screen object-contain rounded-2xl border-8 border-yellow-500 shadow-2xl"
+						onEnded={() => {
+							// Optionally show the button after video ends
+							// This keeps the video as the main focus
+						}}
+					>
+						<source src="/belle-end.webm" type="video/webm" />
+						Your browser does not support the video tag.
+					</video>
+					<button
+						onClick={hardReset}
+						className="absolute bottom-6 right-6 px-8 py-4 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white border-4 border-yellow-700 font-black text-2xl shadow-xl hover:scale-105 transition-all"
+					>
+						📚 PLAY AGAIN
+					</button>
 				</div>
 			) : null}
 
