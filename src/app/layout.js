@@ -4,7 +4,15 @@ import './globals.css'
 export const metadata = {
 	title: 'Rescue the Princess',
 	description: 'Kumon-style subtraction by regrouping game',
-	viewport: 'width=device-width, initial-scale=1',
+}
+
+// ✅ Declare viewport separately
+export const viewport = {
+	width: 'device-width',
+	initialScale: 1,
+	// optional extras:
+	// maximumScale: 1,
+	// themeColor: '#f472b6',
 }
 
 export default function RootLayout({ children }) {
